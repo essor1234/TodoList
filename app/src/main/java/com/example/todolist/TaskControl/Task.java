@@ -1,11 +1,14 @@
 package com.example.todolist.TaskControl;
 
-public class Task {
-    public String description;
-    public Boolean isChecked;
-    public Task(String description, Boolean isChecked) {
-        this.description = description;
-        this.isChecked = isChecked;
-    }
+import java.util.List;
 
+public class Task {
+    public String title;
+    public Boolean isCompleted;
+    public List<SubTask> subTasks;
+    public Task(String title, List<SubTask> subTasks) {
+        this.title = title;
+        this.subTasks = subTasks;
+        this.isCompleted = false;
+    }
 }

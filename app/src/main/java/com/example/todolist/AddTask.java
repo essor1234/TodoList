@@ -8,12 +8,12 @@ import android.view.ViewGroup;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.todolist.TaskControl.TaskAdapter;
+import com.example.todolist.TaskControl.SubTaskAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class AddTask extends BottomSheetDialogFragment {
     private RecyclerView recyclerView;
-    private TaskAdapter adapter;
+    private SubTaskAdapter adapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -23,7 +23,7 @@ public class AddTask extends BottomSheetDialogFragment {
         // Initialize RecyclerView
         recyclerView = view.findViewById(R.id.subTaskList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new TaskAdapter();
+        adapter = new SubTaskAdapter();
         recyclerView.setAdapter(adapter);
 
         return view;

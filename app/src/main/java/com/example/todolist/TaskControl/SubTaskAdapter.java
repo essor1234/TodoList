@@ -15,9 +15,9 @@ import com.example.todolist.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskAdapter  extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
-//    Create a list of task
-    private List<Task> tasks = new ArrayList<>();
+public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.TaskViewHolder> {
+//    Create a list of sub task
+    private List<SubTask> subTasks = new ArrayList<>();
 //    Hold UI elements for each item
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
         CheckBox checkBox;
@@ -32,7 +32,7 @@ public class TaskAdapter  extends RecyclerView.Adapter<TaskAdapter.TaskViewHolde
 
     @Override
     public TaskViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.sub_task_item, parent, false);
         return new TaskViewHolder(view);
     }
 
@@ -40,25 +40,25 @@ public class TaskAdapter  extends RecyclerView.Adapter<TaskAdapter.TaskViewHolde
 //    Bind data to the TaskViewHolder at the specified position
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-//       Check if the position is withing the bounds of tasks list
-        if (position < tasks.size()) {
+//       Check if the position is within the bounds of tasks list
+        if (position < subTasks.size()) {
 //            Bind the existing task
 //            Get the task at the current position
-            Task task = tasks.get(position);
+            SubTask subTask = subTasks.get(position);
 //            Set checkbox state based on isChecked property of the task
-            holder.checkBox.setChecked(task.isChecked);
+            holder.checkBox.setChecked(subTask.isChecked);
 //            Set task description in the EditText
-            holder.editText.setText(task.description);
+            holder.editText.setText(subTask.description);
 
 //            Update task description when user Enter
 //            Set a Listener on EditText
             holder.editText.setOnEditorActionListener((v, actionId, event) -> {
 //                Check if the key was pressed
-                if (event == null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
                     int currentPosition = holder.getAdapterPosition();
 //                    Update the description of the Task at the current position
-                    if (currentPosition != RecyclerView.NO_POSITION && currentPosition < tasks.size()) {
-                        tasks.get(currentPosition).description = v.getText().toString().trim();
+                    if (currentPosition != RecyclerView.NO_POSITION && currentPosition < subTasks.size()) {
+                        subTasks.get(currentPosition).description = v.getText().toString().trim();
                     }
                     return true;
                 }
@@ -78,10 +78,10 @@ public class TaskAdapter  extends RecyclerView.Adapter<TaskAdapter.TaskViewHolde
                         String text = v.getText().toString().trim();
                         if (!text.isEmpty()) {
 //                            Create new Task
-                            Task newTask = new Task(text, false);
+                            SubTask newSubTask = new SubTask(text, false);
 //                            Add into Task list
-                            tasks.add(newTask);
-                            notifyItemInserted(tasks.size() - 1); // Notify that a new task was added
+                            subTasks.add(newSubTask);
+                            notifyItemInserted(subTasks.size() - 1); // Notify that a new task was added
                             v.setText(""); // Clear the input field
                         }
                         return true;
@@ -93,8 +93,10 @@ public class TaskAdapter  extends RecyclerView.Adapter<TaskAdapter.TaskViewHolde
         }
     @Override
     public int getItemCount() {
-        return 0;
+        return subTasks.size() + 1;
     }
+
+//    Save the task and display to main screen
 }
 
 
