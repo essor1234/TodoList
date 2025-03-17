@@ -1,55 +1,43 @@
 package com.example.todolist;
 
-import android.app.Dialog;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.TaskControl.TaskAdapter;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-
-public class AddTask extends DialogFragment {
+public class AddTask extends BottomSheetDialogFragment {
     private RecyclerView recyclerView;
     private TaskAdapter adapter;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for the bottom sheet
+        View view = inflater.inflate(R.layout.activity_add_task, container, false);
 
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // Initialize RecyclerView
+        recyclerView = view.findViewById(R.id.subTaskList);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new TaskAdapter();
         recyclerView.setAdapter(adapter);
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
-//        Inflate the layout for the dialog
-        return inflater.inflate(R.layout.activity_add_task, container, false);
+
+        return view;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        // Adjust the dialog's size when it starts
-        Dialog dialog = getDialog();
-        if (dialog != null) {
-            // Get the screen dimensions
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            int screenWidth = displayMetrics.widthPixels;
-            int screenHeight = displayMetrics.heightPixels;
-
-            // Set the dialog size: 80% of screen width and 50% of screen height
-            int dialogWidth = (int) (screenWidth * 0.8);
-            int dialogHeight = (int) (screenHeight * 0.5);
-            dialog.getWindow().setLayout(dialogWidth, dialogHeight);
-            }
+        // Optional: Set height to 50% of screen
+        View view = getView();
+        if (view != null) {
+            ViewGroup.LayoutParams params = view.getLayoutParams();
+            params.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.5);
+            view.setLayoutParams(params);
         }
-
-
+    }
 }
