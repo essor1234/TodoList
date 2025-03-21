@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,89 +16,105 @@ import com.example.todolist.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.TaskViewHolder> {
-//    Create a list of sub task
+public abstract class SubTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<SubTask> subTasks = new ArrayList<>();
-//    Hold UI elements for each item
-    public static class TaskViewHolder extends RecyclerView.ViewHolder {
-        CheckBox checkBox;
-        EditText editText;
-        public TaskViewHolder(View itemView) {
-            super(itemView);
-            checkBox = itemView.findViewById(R.id.checkBox);
-            editText = itemView.findViewById(R.id.editText);
+    private static final int TYPE_SUBTASK = 0;
+    private static final int TYPE_INPUT = 1;
+    private boolean isEditable = true; // Flag to switch between edit and display modes
 
+    // Constructor for editable mode (AddTask)
+    public SubTaskAdapter() {
+        this.isEditable = true;
+    }
+
+    // Constructor for display mode (MainActivity)
+    public SubTaskAdapter(boolean isEditable) {
+        this.isEditable = isEditable;
+    }
+
+    // Set subtasks for display mode
+    public void setSubTasks(List<SubTask> subTasks) {
+        this.subTasks = new ArrayList<>(subTasks);
+        notifyDataSetChanged();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (isEditable && position == subTasks.size()) {
+            return TYPE_INPUT; // Last item is for adding new subtask
+        }
+        return TYPE_SUBTASK; // Display existing subtasks
+    }
+
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == TYPE_SUBTASK) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.subtask_display_item, parent, false);
+            return new SubTaskDisplayViewHolder(view);
+        } else { // TYPE_INPUT
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.sub_task_item, parent, false);
+            return new SubTaskInputViewHolder(view);
         }
     }
 
     @Override
-    public TaskViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.sub_task_item, parent, false);
-        return new TaskViewHolder(view);
-    }
-
-
-//    Bind data to the TaskViewHolder at the specified position
-    @Override
-    public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-//       Check if the position is within the bounds of tasks list
-        if (position < subTasks.size()) {
-//            Bind the existing task
-//            Get the task at the current position
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof SubTaskDisplayViewHolder) {
             SubTask subTask = subTasks.get(position);
-//            Set checkbox state based on isChecked property of the task
-            holder.checkBox.setChecked(subTask.isChecked);
-//            Set task description in the EditText
-            holder.editText.setText(subTask.description);
+            SubTaskDisplayViewHolder displayHolder = (SubTaskDisplayViewHolder) holder;
+            displayHolder.checkBox.setChecked(subTask.isChecked);
+            displayHolder.textView.setText(subTask.description);
+        } else if (holder instanceof SubTaskInputViewHolder) {
+            SubTaskInputViewHolder inputHolder = (SubTaskInputViewHolder) holder;
+            inputHolder.checkBox.setVisibility(View.GONE);
+            inputHolder.editText.setText("");
 
-//            Update task description when user Enter
-//            Set a Listener on EditText
-            holder.editText.setOnEditorActionListener((v, actionId, event) -> {
-//                Check if the key was pressed
+            inputHolder.editText.setOnEditorActionListener((v, actionId, event) -> {
                 if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
-                    int currentPosition = holder.getAdapterPosition();
-//                    Update the description of the Task at the current position
-                    if (currentPosition != RecyclerView.NO_POSITION && currentPosition < subTasks.size()) {
-                        subTasks.get(currentPosition).description = v.getText().toString().trim();
+                    String text = v.getText().toString().trim();
+                    if (!text.isEmpty()) {
+                        SubTask newSubTask = new SubTask(text, false);
+                        subTasks.add(newSubTask);
+                        notifyItemInserted(subTasks.size() - 1);
+                        v.setText("");
+                        onSubTaskAdded(newSubTask);
                     }
                     return true;
                 }
                 return false;
             });
-        } else {
-                // Bind the add-new-task item
-//            Set the visibility of the CheckBox to GONE
-                holder.checkBox.setVisibility(View.GONE);
-//                set editText to empty
-                holder.editText.setText("");
-
-                // Add a new task when user presses Enter
-                holder.editText.setOnEditorActionListener((v, actionId, event) -> {
-//                    If the Enter trigger and the text is not empty
-                    if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
-                        String text = v.getText().toString().trim();
-                        if (!text.isEmpty()) {
-//                            Create new Task
-                            SubTask newSubTask = new SubTask(text, false);
-//                            Add into Task list
-                            subTasks.add(newSubTask);
-                            notifyItemInserted(subTasks.size() - 1); // Notify that a new task was added
-                            v.setText(""); // Clear the input field
-                        }
-                        return true;
-                    }
-                    return false;
-                });
-            }
-
         }
-    @Override
-    public int getItemCount() {
-        return subTasks.size() + 1;
     }
 
-//    Save the task and display to main screen
+    @Override
+    public int getItemCount() {
+        return isEditable ? subTasks.size() + 1 : subTasks.size();
+    }
+
+    // ViewHolder for displaying subtasks (MainActivity)
+    public static class SubTaskDisplayViewHolder extends RecyclerView.ViewHolder {
+        CheckBox checkBox;
+        TextView textView;
+
+        public SubTaskDisplayViewHolder(View itemView) {
+            super(itemView);
+            checkBox = itemView.findViewById(R.id.checkBox);
+            textView = itemView.findViewById(R.id.textView);
+        }
+    }
+
+    // ViewHolder for input (AddTask)
+    public static class SubTaskInputViewHolder extends RecyclerView.ViewHolder {
+        CheckBox checkBox;
+        EditText editText;
+
+        public SubTaskInputViewHolder(View itemView) {
+            super(itemView);
+            checkBox = itemView.findViewById(R.id.checkBox);
+            editText = itemView.findViewById(R.id.editText);
+        }
+    }
+
+    public abstract void onSubTaskAdded(SubTask subTask);
 }
-
-
-
