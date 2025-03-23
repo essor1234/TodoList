@@ -27,7 +27,7 @@ public class AddTask extends BottomSheetDialogFragment {
     private SubTaskAdapter adapter;
     private EditText taskTitleInput;
     private Button saveButton;
-    private ArrayList<SubTask> subTasks = new ArrayList<>(); // Temporary list for subtasks
+    private ArrayList<SubTask> subTasks = new ArrayList<>(); // Temporary list for subtasks/i
 
     @SuppressLint("NotifyDataSetChanged")
     @Override
@@ -55,14 +55,13 @@ public class AddTask extends BottomSheetDialogFragment {
         saveButton.setOnClickListener(v -> {
             String title = taskTitleInput.getText().toString();
             if (!title.isEmpty()) {
-                // Create task with title and subtasks
                 Task newTask = new Task(title, new ArrayList<>(subTasks));
-                MainActivity.taskList.add(newTask); // Add to MainActivity.taskList
-                if (getActivity() instanceof MainActivity) {
+                MainActivity.taskList.add(newTask);
+                if (getActivity() instanceof MainActivity && ((MainActivity) getActivity()).adapter != null) {
                     ((MainActivity) getActivity()).adapter.notifyDataSetChanged();
                 }
                 dismiss();
-                }
+            }
         });
 
 

@@ -65,6 +65,11 @@ public abstract class SubTaskAdapter extends RecyclerView.Adapter<RecyclerView.V
             SubTaskDisplayViewHolder displayHolder = (SubTaskDisplayViewHolder) holder;
             displayHolder.checkBox.setChecked(subTask.isChecked);
             displayHolder.textView.setText(subTask.description);
+
+            // Update subtask checked status when checkbox is toggled
+            displayHolder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                subTask.isChecked = isChecked;
+            });
         } else if (holder instanceof SubTaskInputViewHolder) {
             SubTaskInputViewHolder inputHolder = (SubTaskInputViewHolder) holder;
             inputHolder.checkBox.setVisibility(View.GONE);
