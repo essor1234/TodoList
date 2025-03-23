@@ -52,9 +52,17 @@ public class AddTask extends BottomSheetDialogFragment {
         // Set up RecyclerView
         RecyclerView subTaskRecyclerView = view.findViewById(R.id.subTaskList);
         subTaskRecyclerView.setLayoutManager(new LinearLayoutManager(getContext())); // Add LayoutManager
+//        adapter = new SubTaskAdapter(true); // Editable mode
+//        adapter.setSubTasks(subTasks); // Pass the subTasks list to the adapter
+//        subTaskRecyclerView.setAdapter(adapter);
         adapter = new SubTaskAdapter(true); // Editable mode
-        adapter.setSubTasks(subTasks); // Pass the subTasks list to the adapter
         subTaskRecyclerView.setAdapter(adapter);
+        adapter.setSubTasks(subTasks); // Assuming this sets the initial list
+        adapter.setOnSubTaskAddedListener(newSubTask -> {
+            subTasks.add(newSubTask);
+            adapter.notifyItemInserted(subTasks.size() - 1);
+        });
+
 
         // If editing, pre-fill fields
         if (taskToEdit != null) {
