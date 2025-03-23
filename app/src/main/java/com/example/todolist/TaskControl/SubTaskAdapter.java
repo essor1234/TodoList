@@ -16,65 +16,63 @@ import com.example.todolist.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class SubTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class SubTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int TYPE_SUBTASK = 0; // For existing subtasks
+    private static final int TYPE_INPUT = 1;   // For the input field
+    private final boolean isEditable;
     private List<SubTask> subTasks = new ArrayList<>();
-    private static final int TYPE_SUBTASK = 0;
-    private static final int TYPE_INPUT = 1;
-    private boolean isEditable = true; // Flag to switch between edit and display modes
+    private OnSubTaskAddedListener listener;
 
-    // Constructor for editable mode (AddTask)
-    public SubTaskAdapter() {
-        this.isEditable = true;
-    }
-
-    // Constructor for display mode (MainActivity)
     public SubTaskAdapter(boolean isEditable) {
         this.isEditable = isEditable;
     }
 
-    // Set subtasks for display mode
     public void setSubTasks(List<SubTask> subTasks) {
-        this.subTasks = new ArrayList<>(subTasks);
+        this.subTasks = subTasks;
         notifyDataSetChanged();
+    }
+
+    public void setOnSubTaskAddedListener(OnSubTaskAddedListener listener) {
+        this.listener = listener;
     }
 
     @Override
     public int getItemViewType(int position) {
+        // In editable mode, the last item is the input field
         if (isEditable && position == subTasks.size()) {
-            return TYPE_INPUT; // Last item is for adding new subtask
+            return TYPE_INPUT;
         }
-        return TYPE_SUBTASK; // Display existing subtasks
+        return TYPE_SUBTASK;
     }
 
-    @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         if (viewType == TYPE_SUBTASK) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.subtask_display_item, parent, false);
+            View view = inflater.inflate(R.layout.subtask_display_item, parent, false);
             return new SubTaskDisplayViewHolder(view);
         } else { // TYPE_INPUT
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.sub_task_item, parent, false);
+            View view = inflater.inflate(R.layout.sub_task_item, parent, false);
             return new SubTaskInputViewHolder(view);
         }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof SubTaskDisplayViewHolder) {
             SubTask subTask = subTasks.get(position);
             SubTaskDisplayViewHolder displayHolder = (SubTaskDisplayViewHolder) holder;
             displayHolder.checkBox.setChecked(subTask.isChecked);
             displayHolder.textView.setText(subTask.description);
-
-            // Update subtask checked status when checkbox is toggled
-            displayHolder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            displayHolder.checkBox.setOnCheckedChangeListener((button, isChecked) -> {
                 subTask.isChecked = isChecked;
             });
         } else if (holder instanceof SubTaskInputViewHolder) {
             SubTaskInputViewHolder inputHolder = (SubTaskInputViewHolder) holder;
-            inputHolder.checkBox.setVisibility(View.GONE);
-            inputHolder.editText.setText("");
+            inputHolder.checkBox.setVisibility(View.GONE); // Hide checkbox
+            inputHolder.editText.setText(""); // Clear input field
 
+            // Add subtask when Enter is pressed
             inputHolder.editText.setOnEditorActionListener((v, actionId, event) -> {
                 if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
                     String text = v.getText().toString().trim();
@@ -82,8 +80,10 @@ public abstract class SubTaskAdapter extends RecyclerView.Adapter<RecyclerView.V
                         SubTask newSubTask = new SubTask(text, false);
                         subTasks.add(newSubTask);
                         notifyItemInserted(subTasks.size() - 1);
-                        v.setText("");
-                        onSubTaskAdded(newSubTask);
+                        v.setText(""); // Clear input
+                        if (listener != null) {
+                            listener.onSubTaskAdded(newSubTask);
+                        }
                     }
                     return true;
                 }
@@ -97,29 +97,32 @@ public abstract class SubTaskAdapter extends RecyclerView.Adapter<RecyclerView.V
         return isEditable ? subTasks.size() + 1 : subTasks.size();
     }
 
-    // ViewHolder for displaying subtasks (MainActivity)
-    public static class SubTaskDisplayViewHolder extends RecyclerView.ViewHolder {
+    // ViewHolder classes
+    static class SubTaskDisplayViewHolder extends RecyclerView.ViewHolder {
         CheckBox checkBox;
         TextView textView;
 
-        public SubTaskDisplayViewHolder(View itemView) {
+        SubTaskDisplayViewHolder(View itemView) {
             super(itemView);
             checkBox = itemView.findViewById(R.id.checkBox);
             textView = itemView.findViewById(R.id.textView);
         }
     }
 
-    // ViewHolder for input (AddTask)
-    public static class SubTaskInputViewHolder extends RecyclerView.ViewHolder {
+    static class SubTaskInputViewHolder extends RecyclerView.ViewHolder {
         CheckBox checkBox;
         EditText editText;
 
-        public SubTaskInputViewHolder(View itemView) {
+        SubTaskInputViewHolder(View itemView) {
             super(itemView);
             checkBox = itemView.findViewById(R.id.checkBox);
             editText = itemView.findViewById(R.id.editText);
         }
     }
 
-    public abstract void onSubTaskAdded(SubTask subTask);
+    // Listener interface
+    public interface OnSubTaskAddedListener {
+        void onSubTaskAdded(SubTask subTask);
+    }
 }
+
